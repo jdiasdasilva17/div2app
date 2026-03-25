@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "outDir": "./.script-dist",
+    "jsx": "react-jsx"
+  },
+  "include": ["src/jobs/**/*.ts", "src/lib/**/*.ts"]
+}

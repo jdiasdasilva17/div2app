@@ -1,0 +1,10 @@
+{
+  "name": "Volei Div2 Tracker",
+  "short_name": "Div2Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#1161a7",
+  "lang": "pt-PT",
+  "description": "Acompanhamento pessoal da II divisao nacional masculina de voleibol"
+}

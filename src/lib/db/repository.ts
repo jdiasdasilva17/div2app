@@ -66,10 +66,14 @@ export async function getMatches(): Promise<Match[]> {
     return [...matches].sort((a, b) => a.matchDateIso.localeCompare(b.matchDateIso));
   }
 
-  const rows = await supabaseRest<SupabaseMatchRow[]>(
-    "matches?select=id,competition_id,phase,match_date,home_team,away_team,home_sets,away_sets,status&order=match_date.asc"
-  );
-  return rows.map(mapMatchRow);
+  try {
+    const rows = await supabaseRest<SupabaseMatchRow[]>(
+      "matches?select=id,competition_id,phase,match_date,home_team,away_team,home_sets,away_sets,status&order=match_date.asc"
+    );
+    return rows.map(mapMatchRow);
+  } catch {
+    return [...matches].sort((a, b) => a.matchDateIso.localeCompare(b.matchDateIso));
+  }
 }
 
 export async function getStandings(phase?: string): Promise<StandingRow[]> {
@@ -78,20 +82,25 @@ export async function getStandings(phase?: string): Promise<StandingRow[]> {
     return [...data].sort((a, b) => a.rank - b.rank);
   }
 
-  const phaseFilter = phase ? `&phase=eq.${encodeURIComponent(phase)}` : "";
-  const rows = await supabaseRest<SupabaseStandingRow[]>(
-    `standings_rows?select=phase,rank,team,points,played,won,lost,sets_won,sets_lost,fetched_at&order=fetched_at.desc&order=rank.asc${phaseFilter}`
-  );
+  try {
+    const phaseFilter = phase ? `&phase=eq.${encodeURIComponent(phase)}` : "";
+    const rows = await supabaseRest<SupabaseStandingRow[]>(
+      `standings_rows?select=phase,rank,team,points,played,won,lost,sets_won,sets_lost,fetched_at&order=fetched_at.desc&order=rank.asc${phaseFilter}`
+    );
 
-  if (rows.length === 0) {
-    return [];
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const latestFetchedAt = rows[0].fetched_at;
+    return rows
+      .filter((row) => row.fetched_at === latestFetchedAt)
+      .map(mapStandingRow)
+      .sort((a, b) => a.rank - b.rank);
+  } catch {
+    const data = phase ? standings.filter((row) => row.phase === phase) : standings;
+    return [...data].sort((a, b) => a.rank - b.rank);
   }
-
-  const latestFetchedAt = rows[0].fetched_at;
-  return rows
-    .filter((row) => row.fetched_at === latestFetchedAt)
-    .map(mapStandingRow)
-    .sort((a, b) => a.rank - b.rank);
 }
 
 export async function getTeamForm(teamName: string, limit = 5): Promise<Match[]> {
